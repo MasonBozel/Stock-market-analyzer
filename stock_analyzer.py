@@ -22,9 +22,18 @@ for ticker in tickers:
 
 print("\nDone. Data fetched for:", list(all_data.keys()))
 
-# Compare returns and volatility across all stocks
+# Approximate annual risk-free rate (based on recent short-term Treasury yields)
+risk_free_rate = 0.045  # 4.5%
+risk_free_daily = risk_free_rate / 252  # 252 trading days in a year
+
+# Compare returns, volatility, and risk-adjusted performance across all stocks
 print("\n--- 6-Month Performance Comparison ---")
 for ticker, data in all_data.items():
     total_return = (data["Close"].iloc[-1] / data["Close"].iloc[0] - 1) * 100
-    volatility = data["Daily Return"].std() * 100
-    print(f"{ticker}: Total Return = {total_return:.2f}%, Daily Volatility = {volatility:.2f}%")
+    daily_volatility = data["Daily Return"].std()
+    volatility = daily_volatility * 100
+
+    avg_daily_return = data["Daily Return"].mean()
+    sharpe_ratio = (avg_daily_return - risk_free_daily) / daily_volatility
+
+    print(f"{ticker}: Total Return = {total_return:.2f}%, Daily Volatility = {volatility:.2f}%, Sharpe Ratio = {sharpe_ratio:.3f}")
