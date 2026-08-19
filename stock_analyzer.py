@@ -20,6 +20,20 @@ def backtest_crossover_strategy(data):
     buy_hold_total_return = (1 + data["Daily Return"]).prod() - 1
     return strategy_total_return * 100, buy_hold_total_return * 100
 
+def plot_stock_prices(all_data):
+    """Plot closing prices for all stocks on one chart for comparison."""
+    plt.figure(figsize=(12, 6))
+    for ticker, data in all_data.items():
+        plt.plot(data.index, data["Close"], label=ticker, linewidth=1.5)
+
+    plt.title("Stock Price Comparison (6 Months)")
+    plt.xlabel("Date")
+    plt.ylabel("Price ($)")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.savefig("stock_chart.png")
+    plt.show()
+
 def store_data_in_db(all_data, db_name="stock_data.db"):
     """Store all stocks' price data into a SQLite database."""
     conn = sqlite3.connect(db_name)
@@ -102,3 +116,6 @@ store_data_in_db(all_data)
 print("\n--- SQL Query: Average Closing Price by Ticker ---")
 for ticker, avg_close in query_average_close():
     print(f"{ticker}: ${avg_close:.2f}")
+
+# Plot all stocks for visual comparison
+plot_stock_prices(all_data)
