@@ -10,6 +10,23 @@ def get_stock_data(ticker):
     data["Daily Return"] = data["Close"].pct_change()
     return data
 
+def backtest_crossover_strategy(data):
+    """Simulate a moving average crossover strategy and compare to buy and hold."""
+    # Signal: 1 if short-term MA is above long-term MA (bullish), else 0
+    data["Signal"] = (data["20 Day MA"] > data["50 Day MA"]).astype(int)
+
+    # Shift signal forward by 1 day - we can only act on yesterday's signal, not today's
+    data["Position"] = data["Signal"].shift(1)
+
+    # Strategy return: only earn the day's return when we hold a position
+    data["Strategy Return"] = data["Daily Return"] * data["Position"]
+
+    # Compare cumulative growth: strategy vs. buy and hold
+    strategy_total_return = (1 + data["Strategy Return"]).prod() - 1
+    buy_hold_total_return = (1 + data["Daily Return"]).prod() - 1
+
+    return strategy_total_return * 100, buy_hold_total_return * 100
+
 # List of tickers to analyze
 tickers = ["AAPL", "MSFT", "TSLA", "GOOGL"]
 
@@ -37,3 +54,9 @@ for ticker, data in all_data.items():
     sharpe_ratio = (avg_daily_return - risk_free_daily) / daily_volatility
 
     print(f"{ticker}: Total Return = {total_return:.2f}%, Daily Volatility = {volatility:.2f}%, Sharpe Ratio = {sharpe_ratio:.3f}")
+
+# Backtest the crossover strategy against buy and hold
+print("\n--- Backtest: Moving Average Crossover Strategy vs. Buy & Hold ---")
+for ticker, data in all_data.items():
+    strategy_return, buy_hold_return = backtest_crossover_strategy(data)
+    print(f"{ticker}: Strategy Return = {strategy_return:.2f}%, Buy & Hold Return = {buy_hold_return:.2f}%")
